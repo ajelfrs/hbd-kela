@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Surprise untuk Kamu</title>
+    <!-- Animate.css untuk animasi -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <!-- DaisyUI & Tailwind -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Gravitas+One&family=Instrument+Serif:ital@0;1&family=Playwrite+GB+J:ital,wght@0,100..400;1,100..400&display=swap" rel="stylesheet">
+
+    <style>
+        /* 1. Elemen pembungkus yang bertugas jalanin animasi terbang */
+        .balloon-wrapper {
+            position: absolute;
+            bottom: -120px;
+            pointer-events: auto; /* Biar areanya bisa diklik */
+            z-index: 50;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-115vh); }
+        }
+
+        /* 2. Elemen balon asli di dalam wrapper */
+        .balloon {
+            width: 60px;
+            height: 80px;
+            border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            font-size: 24px;
+            box-shadow: inset -5px -5px 0 rgba(0,0,0,0.15);
+            cursor: pointer;
+            transform-origin: center center;
+            transition: all 0.2s ease-out; 
+        }
+
+        /* Tali balon */
+        .balloon::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 15px;
+            background-color: #999;
+        }
+
+        /* Efek meletus balon biasa */
+        .pop {
+            transform: scale(2.5) !important;
+            opacity: 0 !important;
+        }
+        
+        /* Styling khusus balon ke 17 */
+        .balloon-gold {
+            background-color: #FFD700 !important;
+            color: #d35400;
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.9), inset -5px -5px 0 rgba(0,0,0,0.15);
+            width: 75px;
+            height: 95px;
+            font-size: 32px;
+            animation: pulseGold 1.5s infinite alternate;
+        }
+
+        @keyframes pulseGold {
+            0% { transform: scale(1); box-shadow: 0 0 20px rgba(255, 215, 0, 0.8); }
+            100% { transform: scale(1.40); box-shadow: 0 0 35px rgba(255, 215, 0, 1); }
+        }
+
+        /* Efek Meletus Dahsyat khusus Balon 17 */
+        .pop-gold-burst {
+            animation: goldExplode 1.5s ease-out forwards !important;
+        }
+
+        @keyframes goldExplode {
+            0% { transform: scale(1); filter: brightness(1); }
+            30% { transform: scale(15.0); filter: brightness(1.8); }
+            100% { transform: scale(0); opacity: 0; filter: brightness(3) blur(2px); }
+        }
+
+        /* Gaya untuk partikel ledakan emas */
+        .sparkle {
+            position: fixed;
+            pointer-events: none;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            z-index: 9999;
+            animation: shootParticle 0.6s ease-out forwards;
+        }
+
+        @keyframes shootParticle {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--mx), var(--my)) scale(0); opacity: 0; }
+        }
+        
+        /* Efek kursor berkedip */
+.typing-cursor::after {
+  content: '|';
+  animation: blink 0.7s infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+/* Tampilan baru untuk hujan love emoji */
+.heart-rain {
+    position: fixed;
+    top: -5vh; /* Mulai dari atas luar layar */
+    pointer-events: none; /* Biar ga ganggu klik balon/tombol */
+    z-index: 9999; /* Angka keramat biar PASTI di paling depan, ga ketutupan apapun */
+    animation: rainFall linear forwards;
+    user-select: none;
+}
+
+@keyframes rainFall {
+    0% {
+        transform: translateY(0) translateX(0) scale(0.5);
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+        transform: translateY(10vh) scale(1.2);
+    }
+    100% {
+        /* Jatuh ke bawah sambil nge-sway (goyang) ke samping */
+        transform: translateY(110vh) translateX(var(--sway)) scale(0.8);
+        opacity: 0;
+    }
+}
+
+
+    </style>
+</head>
+<body class="bg-secondary-content min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden">
+    <!-- Tombol Fixed di Pojok Kanan Atas -->
+<button id="toggle-audio-btn" class="btn btn-secondary fixed btn-circle top-4 right-4 z-50 shadow-lg">
+𝅘𝅥𝅮
+</button>
+
+    <audio id="bg-audio" loop autoplay>
+  <!-- Ganti 'musik-kamu.mp3' dengan nama file atau link audio kamu -->
+  <source src="song.mp3" type="audio/mpeg">
+  Browser kamu nggak support elemen audio.
+</audio>
+    <!-- Container untuk Balon -->
+    <div id="balloon-container" class="fixed inset-0 pointer-events-none z-50"></div>
+
+    <div id="tsparticles" class="z-10 relative">
+
+        <!-- Bagian Awal -->
+        <div id="intro" class="text-center">
+            <h2 class="text-3xl font-bold animate__animated animate__fadeInUp text-secondary" style="font-family: 'Gravitas One', serif;">A Little Surprise</h2>
+            <h1 id="teks-animasi" class="text-error font-bold typing_cursor" style="font-family: 'Playwrite GB J', serif;">Made With Love</h1>
+
+            <button id="btnBuka" class="btn btn-secondary btn-circle mt-6">➤</button>
+        </div>
+
+        <!-- Bagian Card (Awalnya tersembunyi) -->
+        <div id="surpriseContent" class="hidden animate__animated animate__zoomIn w-full max-w-sm">
+            <h1 id="teks-animasi2" class="text-error font-bold typing_cursor" style="font-family: 'Playwrite GB J', serif;"></h1>
+        </div>
+    </div>
+
+    <!-- Modal Ucapan (Terbuka pas balon 17 meletus) -->
+    <dialog id="modalUcapan" class="modal">
+        <!-- Menggunakan animate__jackInTheBox atau animate__bounceIn untuk efek membal yang dramatis -->
+        <div class="modal-box animate__animated animate__bounceIn bg-gradient-to-br from-pink-100 to-white border-2 border-pink-300 shadow-2xl">
+            <form method="dialog">
+                <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2 text-pink-500">✕</button>
+            </form>
+            
+            <h3 class="font-bold text-2xl text-pink-600 mb-4" style="font-family: 'Gravitas One', serif;">Happy Sweet 17th! 🎉</h3>
+            
+            <p id="kata" class="py-4 text-gray-700 text-left space-y-3" style="font-family: 'Playwrite GB J', serif;">
+                
+            </p>
+            
+            <div class="modal-action justify-center">
+                <form method="dialog">
+                    <button id="btnDialog" class="btn btn-secondary px-8">Aww, Makasih! 😘</button>
+                </form>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+        </form>
+    </dialog>
+    <div class="carousel hidden carousel-center w-full max-w-md space-x-10 p-10" id="myCarousel">
+  <div id="slide1" class="animate__animated animate__fadeInUp carousel-item card bg-base-100 w-70 shadow-sm">
+    <figure>
+      <img src="mbb.jpg" alt="Merbabu" />
+    </figure>
+    <div class="card-body">
+      <h1 class="text-xl font-bold" style="font-family: 'Gravitas One', serif;">Merbabu Merayakanmu</h1>
+      <p class="text-xs" style="font-family: 'Playwrite GB J', serif;">Happy Birthday Keyla</p>
+      <p class="text-xs" style="font-family: 'Playwrite GB J', serif;">- Mt. Merbabu 3142 MDPL -</p>
+    </div>
+  </div>
+
+  <div id="slide2" class="carousel-item card bg-base-100 w-70 shadow-sm">
+    <figure>
+      <img src="fb1.jpg" alt="Merbabu" />
+    </figure>
+    <div class="card-body">
+      <h1 class="text-xl font-bold" style="font-family: 'Gravitas One', serif;">Azel Merayakanmu</h1>
+      <p class="text-xs" style="font-family: 'Playwrite GB J', serif;">Happy Birthday Keyla</p>
+      <p class="text-xs" style="font-family: 'Playwrite GB J', serif;">Semoga Panjang Umur dan Sehat Selalu</p>
+    </div>
+  </div>
+
+  <div id="slide3" class="carousel-item card bg-base-100 w-70 shadow-sm">
+    <figure>
+      <img src="fb2.png" alt="Merbabu" />
+    </figure>
+    <div class="card-body">
+      <h1 class="text-xl font-bold" style="font-family: 'Gravitas One', serif;">Faris Merayakanmu</h1>
+      <p class="text-xs" style="font-family: 'Playwrite GB J', serif;">Happy Birthday Kelaa</p>
+      <p class="text-xs" style="font-family: 'Playwrite GB J', serif;">Selamat Bertambah Usia Yaa!</p>
+    </div>
+  </div>
+
+  <div id="slide4" class="carousel-item card bg-base-100 w-70 shadow-sm">
+    <figure>
+      <img src="fb3.jpg" alt="Merbabu" />
+    </figure>
+    <div class="card-body">
+      <h1 class="text-xl font-bold" style="font-family: 'Gravitas One', serif;">Ajelll Merayakanmu</h1>
+      <p class="text-xs" style="font-family: 'Playwrite GB J', serif;">Happy Birthday Sayangg</p>
+      <p class="text-xs" style="font-family: 'Playwrite GB J', serif;">Wish u all the best. Semoga sehat selalu, dan panjang umur. Dan semoga kita bisa sama-sama terus.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Container Tombol -->
+<div class="button-container flex justify-center gap-4 mt-4">
+  <!-- Tombol Navigasi Kiri & Kanan -->
+  <button id="prevBtn" class="btn hifden btn-secondary btn-circle">&lt;</button>
+  <button id="nextBtn" class="btn hidden btn-secondary btn-circle">&gt;</button>
+  
+  <!-- Tombol Final (Disembunyikan di awal) -->
+  <button id="finalBtn" class="btn btn-secondary btn-circle hidden w-36 max-w-xs">Next</button>
+</div>
+    <div id="foto" class="flex hidden flex-col items-center justify-center w-full">
+        
+        <div class="grid grid-cols-5 grid-rows-6 gap-0 w-[90vw] max-w-[600px] h-[90vw] max-h-[600px] aspect-square p-0 bg-secondary-content rounded-3xl shadow-2xl animate__animated animate__fadeIn relative z-0"
+             style="clip-path: polygon(50% 15%, 65% 0%, 85% 0%, 100% 15%, 100% 40%, 85% 65%, 50% 95%, 15% 65%, 0% 40%, 0% 15%, 15% 0%, 35% 0%);">
+            
+            <img src="img/1.jpg" class="w-full h-full object-cover bg-base-300 animate__animated animate__zoomIn" style="animation-delay: 0.0s;">
+            <img src="img/26.jpg" class="w-full h-full object-cover bg-base-300 animate__animated animate__zoomIn" style="animation-delay: 0.2s;">
+            <img src="img/3.jpg" class="w-full h-full object-cover bg-base-300 animate__animated animate__zoomIn" style="animation-delay: 0.4s;">
+            <img src="img/4.jpg" class="w-full h-full object-cover bg-base-300 animate__animated animate__zoomIn" style="animation-delay: 0.6s;">
+            <img src="img/5.jpg" class="w-full h-full object-cover bg-base-300 animate__animated animate__zoomIn" style="animation-delay: 0.8s;">
+            <img src="img/6.jpg" class="w-full h-full object-cover bg-base-300 animate__animated animate__zoomIn" style="animation-delay: 1.0s;">
+            <img src="img/7.jpg" class="w-full h-full object-cover bg-base-300 animate__animated animate__zoomIn" style="animation-delay: 1.2s;">
+
+            <img src="img/8.jpg" class="w-full h-full object-cover bg-base-300 animate__animated animate__zoomIn" style="animation-delay: 1.4s;">
+            <img src="img/9.jpg" class="w-full h-full object-cover bg-base-300 animate__animated animate__zoomIn" style="animation-delay: 1.6s;">
+            <img src="img/10.jpg" class="w-full h-full object-cover bg-base-300 animate__animated animate__zoomIn" style="animation-delay: 1.8s;">
+            <img src="img/11.jpg" class="w-full h-full object-cover bg-base-300 animate__animated animate__zoomIn" style="animation-delay: 2.0s;">
+            <img src="img/12.jpg" class="w-full h-full object-cover bg-base-300 animate__animated animate__zoomIn" style="animation-delay: 2.2s;">
+            <img src="img/13.jpg" class="w-full h-full object-cover bg-base-300 animate__animated animate__zoomIn" style="animation-delay: 2.4s;">
+            <img src="img/14.jpg" class="w-full h-full object-cover bg-base-300 animate__animated animate__zoomIn" style="animation-delay: 2.6s;">
+
+            <img src="img/24.jpg" class="w-full h-full object-cover bg-base-300 animate__animated animate__zoomIn" style="animation-delay: 2.8s;">
+            <img src="img/16.jpg" class="w-full h-full object-cover bg-base-300 animate__animated animate__zoomIn" style="animation-delay: 3.0s;">
+            <img src="img/17.jpg" class="w-full h-full object-cover bg-base-300 animate__animated animate__zoomIn" style="animation-delay: 3.2s;">
+            <img src="img/18.jpg" class="w-full h-full object-cover bg-base-300 animate__animated animate__zoomIn" style="animation-delay: 3.4s;">
+            <img src="img/19.jpg" class="w-full h-full object-cover bg-base-300 animate__animated animate__zoomIn" style="animation-delay: 3.6s;">
+            <img src="img/20.jpg" class="w-full h-full object-cover bg-base-300 animate__animated animate__zoomIn" style="animation-delay: 3.8s;">
+            <img src="img/21.jpg" class="w-full h-full object-cover bg-base-300 animate__animated animate__zoomIn" style="animation-delay: 4.0s;">
+            
+            <img src="img/22.jpg" class="w-full h-full object-cover bg-base-300 animate__animated animate__zoomIn" style="animation-delay: 4.2s;">
+            <img src="img/23.jpg" class="w-full h-full object-cover bg-base-300 animate__animated animate__zoomIn" style="animation-delay: 4.4s;">
+            <img src="img/24.jpg" class="w-full h-full object-cover bg-base-300 animate__animated animate__zoomIn" style="animation-delay: 4.6s;">
+            <img src="img/25.jpg" class="w-full h-full object-cover bg-base-300 animate__animated animate__zoomIn" style="animation-delay: 4.8s;">
+            <img src="img/26.jpg" class="w-full h-full object-cover bg-base-300 animate__animated animate__zoomIn" style="animation-delay: 4.8s;">
+            <img src="img/27.jpg" class="w-full h-full object-cover bg-base-300 animate__animated animate__zoomIn" style="animation-delay: 4.8s;">
+            <img src="img/25.jpg" class="w-full h-full object-cover bg-base-300 animate__animated animate__zoomIn" style="animation-delay: 4.8s;">
+            <img src="img/26.jpg" class="w-full h-full object-cover bg-base-300 animate__animated animate__zoomIn" style="animation-delay: 4.8s;">
+        </div>
+        
+        <h2 class="mt-8 text-secondary font-semibold text-base-content z-10 relative" style="font-family: 'Gravitas One', serif;">Beautiful From All Side</h2>
+        <center><p id="p1" class="text-xs text-error" style="font-family: 'Playwrite GB J', serif;"></p></center>
+    </div>
+
+    <script>
+    </script>
+    <script src="music.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
