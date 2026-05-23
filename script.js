@@ -67,7 +67,7 @@ function createBalloon(number) {
   balloon.classList.add('balloon');
   balloon.innerText = number;
   
-  if (number === 1) {
+  if (number === 17) {
     balloon.classList.add('balloon-gold');
     wrapper.style.zIndex = '100'; 
   } else {
@@ -84,7 +84,7 @@ function createBalloon(number) {
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
     
-    if (number === 1) {
+    if (number === 17) {
       balloon.classList.add('pop-gold-burst');
       createExplosion(centerX, centerY);
       
