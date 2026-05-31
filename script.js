@@ -190,6 +190,12 @@ document.getElementById('finalBtn').addEventListener('click', () => {
   updateButtons();
 });
 
+document.getElementById('btnLast').addEventListener('click', () => {
+  document.getElementById('last').classList.remove('hidden');
+  document.getElementById('foto').classList.add('hidden');
+  animateLetterByLetter("thnk", "Thank U For Coming Into My Life", 80, 1000)
+});
+
 // Tombol Navigasi Manual
 nextBtn.addEventListener('click', () => {
   goToSlide(currentSlideIndex + 1);
